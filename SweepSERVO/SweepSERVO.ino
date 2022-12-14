@@ -2,40 +2,36 @@
 #include <WiFiClient.h>
 #include <WebServer.h>
 #include <Servo.h>
+#include "DHT.h"
 
-
-//#define DHTTYPE DHT11 
+#define DHTTYPE DHT11 
 
 Servo myservo;  // create servo object to control a servo
 // twelve servo objects can be created on most boards
 
 int servoPin = 13;
-//uint8_t DHTPin = 4; 
+uint8_t DHTPin = 4; 
 
 const char* ssid = "DT"; 
 const char* password = "12345678";
-
-IPAddress local_ip(192,168,5,1);
-IPAddress gateway(192,168,5,1);
-IPAddress subnet(255,255,255,0);
 
 WebServer servidor(80);
  
 int pos = 0;
 int pos2 = 170;
 
-//DHT dht(DHTPin, DHTTYPE);  
+DHT dht(DHTPin, DHTTYPE);  
 
-//float Temperature;
-//float Humidity;
+float Temperature;
+float Humidity;
 
 void setup()
 {
   Serial.begin(115200);
   myservo.attach(servoPin);
-  //pinMode(DHTPin(4), INPUT);
+  pinMode(DHTPin, INPUT);
 
-  //dht.begin();    
+  dht.begin();    
   
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
@@ -49,6 +45,7 @@ void setup()
   Serial.print("Got IP: ");  Serial.println(WiFi.localIP());
 
   servidor.on("/", handle_OnConnect);
+  servidor.on("/", handle_OnConnectsensor);
   servidor.on("/servo0", handle_servoMinimo);
   servidor.on("/servo170", handle_servoMaximo);
   servidor.onNotFound(handle_NotFound);
@@ -71,12 +68,10 @@ void handle_OnConnect()
   servidor.send(200, "text/html", respuestaHtml());
 }
 
-//void handle_OnConnectSensor(){
-  
-  //Temperature = dht.readTemperature(); 
-  //Humidity = dht.readHumidity();  
-  //server.send(200, "text/html", SendHTML(Temperature,Humidity)); 
-//}
+void handle_OnConnectsensor(){
+
+    servidor.send(200, "text/html", respuestaHtml()); 
+}
 
 void handle_servoMinimo()
 {  
@@ -87,17 +82,25 @@ void handle_servoMinimo()
 void handle_servoMaximo()
 {
     myservo.write(170);  
-   servidor.send(200, "text/html", respuestaHtml());
+    servidor.send(200, "text/html", respuestaHtml());
 }
 
 void handle_NotFound()
 {
-  servidor.send(404, "text/plain", "Error 404 - Pagina no encontrada");
+    servidor.send(404, "text/plain", "Error 404 - Pagina no encontrada");
 }
 
 
 String respuestaHtml()
-{
+{  
+  float Temperature= dht.readTemperature();
+  float Humidity = dht.readHumidity();
+
+  
+  Serial.println(Temperature);
+  Serial.println(Humidity);
+
+ 
   String codigoHtml = "<!DOCTYPE html> <html>\n";
   codigoHtml += "<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n";
   codigoHtml += "<title>ET36 WEBSERVER SERVO/DHT11</title>\n";
@@ -114,6 +117,12 @@ String respuestaHtml()
   codigoHtml += "<body>\n";
   codigoHtml += "<h1>ESP32 Web Server FLORES/FORTUNATO</h1>\n";
   codigoHtml += "<h3>Modo Station (STA)</h3>\n";
+  codigoHtml += "<h2>";
+  codigoHtml += (String)Humidity;
+  codigoHtml += "</h2>\n";
+  codigoHtml += "<h2>";
+  codigoHtml += String(Temperature);     
+  codigoHtml += "</h2>\n";
 
   if (pos == LOW)
     codigoHtml += "<p>SERVO INICIAL: Off</p><a class=\"button button-off\" href=\"/servo0\">MINIMO SERVO</a>\n";
@@ -124,7 +133,7 @@ String respuestaHtml()
     codigoHtml += "<p>SERVO MAXIMO: Off</p><a class=\"button button-on\" href=\"/servo170\">MAXIMO SERVO</a>\n";
   else 
     codigoHtml += "<p>SERVO MAXIMO: Off</p><a class=\"button button-on\" href=\"/servo170\">MAXIMO SERVO</a>\n";
-    
+
   codigoHtml += "</body>\n";
   codigoHtml += "</html>\n";
   return codigoHtml;
