@@ -1,3 +1,7 @@
+//GND: blanco
+//5V: ROJO  (Servo)
+//3V3: Naranja  (Dht)
+
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <WebServer.h>
@@ -6,14 +10,12 @@
 
 #define DHTTYPE DHT11 
 
-Servo myservo;  // create servo object to control a servo
-// twelve servo objects can be created on most boards
-
+Servo myservo;  
 int servoPin = 13;
 uint8_t DHTPin = 4; 
 
-const char* ssid = "DT"; 
-const char* password = "12345678";
+const char* ssid = "Telecentro-6b42"; 
+const char* password = "lebreton5831";
 
 WebServer servidor(80);
  
@@ -21,9 +23,6 @@ int pos = 0;
 int pos2 = 170;
 
 DHT dht(DHTPin, DHTTYPE);  
-
-float Temperature;
-float Humidity;
 
 void setup()
 {
@@ -100,7 +99,6 @@ String respuestaHtml()
   Serial.println(Temperature);
   Serial.println(Humidity);
 
- 
   String codigoHtml = "<!DOCTYPE html> <html>\n";
   codigoHtml += "<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n";
   codigoHtml += "<title>ET36 WEBSERVER SERVO/DHT11</title>\n";
@@ -117,22 +115,24 @@ String respuestaHtml()
   codigoHtml += "<body>\n";
   codigoHtml += "<h1>ESP32 Web Server FLORES/FORTUNATO</h1>\n";
   codigoHtml += "<h3>Modo Station (STA)</h3>\n";
+  codigoHtml += "<h1 {color: #32CD32}>HUMEDAD</h1>\n";
   codigoHtml += "<h2>";
-  codigoHtml += (String)Humidity;
+  codigoHtml += String(Humidity);
   codigoHtml += "</h2>\n";
+  codigoHtml += "<h1 {color: #32CD32}>TEMPERATURA</h1>\n";
   codigoHtml += "<h2>";
   codigoHtml += String(Temperature);     
   codigoHtml += "</h2>\n";
 
   if (pos == LOW)
-    codigoHtml += "<p>SERVO INICIAL: Off</p><a class=\"button button-off\" href=\"/servo0\">MINIMO SERVO</a>\n";
+    codigoHtml += "<p>SERVO 0°: Off</p><a class=\"button button-off\" href=\"/servo0\">MINIMO SERVO</a>\n";
   else 
-    codigoHtml += "<p>SERVO INICIAL: Off</p><a class=\"button button-off\" href=\"/servo0\">MINIMO SERVO</a>\n";
+    codigoHtml += "<p>SERVO 0°: Off</p><a class=\"button button-off\" href=\"/servo0\">MINIMO SERVO</a>\n";
 
   if (pos2 == LOW)
-    codigoHtml += "<p>SERVO MAXIMO: Off</p><a class=\"button button-on\" href=\"/servo170\">MAXIMO SERVO</a>\n";
+    codigoHtml += "<p>SERVO 170°: Off</p><a class=\"button button-on\" href=\"/servo170\">MAXIMO SERVO</a>\n";
   else 
-    codigoHtml += "<p>SERVO MAXIMO: Off</p><a class=\"button button-on\" href=\"/servo170\">MAXIMO SERVO</a>\n";
+    codigoHtml += "<p>SERVO 170°: Off</p><a class=\"button button-on\" href=\"/servo170\">MAXIMO SERVO</a>\n";
 
   codigoHtml += "</body>\n";
   codigoHtml += "</html>\n";
